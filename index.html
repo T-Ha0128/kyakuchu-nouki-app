@@ -12,36 +12,60 @@
     }
     body {
       font-family: 'Noto Sans JP', sans-serif;
+      margin: 0;
       padding: 2em;
       background: #f5f5f5;
       color: #333;
     }
     .container {
-      max-width: 700px;
+      max-width: 720px;
       margin: auto;
       background: white;
       padding: 2em;
       border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     }
     h1 {
       text-align: center;
       color: var(--main-color);
-      margin-bottom: 1em;
+      margin-bottom: 1.5em;
+      font-size: 1.8em;
     }
     input, button {
       width: 100%;
       padding: 1em;
       margin-top: 1em;
       font-size: 1.1em;
+      box-sizing: border-box;
     }
     .result {
       margin-top: 2em;
-      padding: 1em;
       background: #eef;
-      border-radius: 10px;
+      border-radius: 12px;
+      padding: 1.5em;
       font-size: 1.1em;
       line-height: 1.6em;
+    }
+    .result-row {
+      display: flex;
+      margin-bottom: 0.6em;
+    }
+    .label {
+      width: 160px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .value {
+      flex: 1;
+      overflow-wrap: break-word;
+    }
+    .highlight-nouki {
+      background: var(--highlight-bg);
+      padding: 1em;
+      margin-bottom: 1em;
+      border-left: 5px solid var(--main-color);
+      font-weight: bold;
+      font-size: 1.2em;
     }
     .highlight-remarks {
       margin-top: 1em;
@@ -63,10 +87,10 @@
 <body>
   <div class="container">
     <h1>客注納期検索</h1>
-    <input type="date" id="注文日">
-    <input type="text" id="品番" placeholder="品番を入力">
+    <input type="date" id="注文日" />
+    <input type="text" id="品番" placeholder="品番を入力" />
     <button onclick="検索()">検索</button>
-    <div id="結果" class="result fade-in" style="display:none;"></div>
+    <div id="結果" class="result fade-in" style="display: none;"></div>
   </div>
 
   <script>
@@ -133,16 +157,13 @@
       const 納期表示 = `${納期.getFullYear()}/${納期.getMonth()+1}/${納期.getDate()}（土）`;
 
       let html = `
-        <div style="background: var(--highlight-bg); padding: 1em; border-left: 5px solid var(--main-color); font-weight: bold; font-size: 1.2em;">
-          納期：<span style='color: var(--main-color);'>${納期表示}</span>
-        </div>
-        <div><strong>品番名：</strong>&nbsp;${item.品番名}</div>
-        <div><strong>仕入先名：</strong>&nbsp;${item.仕入先名}</div>
-        <div><strong>品種名：</strong>&nbsp;${item.品種名}</div>
-        <div><strong>メーカー商品コード：</strong>&nbsp;${item.メーカー商品コード}</div>
-        <div><strong>上代本体単価：</strong>&nbsp;${item.上代本体単価}</div>
-        <div><strong>P/S区分名：</strong>&nbsp;${item.PS区分名}</div>
-      `;
+        <div class="highlight-nouki">納期：<span style='color: var(--main-color);'>${納期表示}</span></div>
+        <div class="result-row"><div class="label">品番名：</div><div class="value">${item.品番名}</div></div>
+        <div class="result-row"><div class="label">仕入先名：</div><div class="value">${item.仕入先名}</div></div>
+        <div class="result-row"><div class="label">品種名：</div><div class="value">${item.品種名}</div></div>
+        <div class="result-row"><div class="label">メーカー商品コード：</div><div class="value">${item.メーカー商品コード}</div></div>
+        <div class="result-row"><div class="label">上代本体単価：</div><div class="value">${item.上代本体単価}</div></div>
+        <div class="result-row"><div class="label">P/S区分名：</div><div class="value">${item.PS区分名}</div></div>`;
 
       if (item.備考) {
         html += `<div class="highlight-remarks">📝 備考：${item.備考}</div>`;
