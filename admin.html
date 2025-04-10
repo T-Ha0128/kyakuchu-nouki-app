@@ -1,68 +1,24 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <link rel="manifest" href="manifest.json">
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js');
-      });
-    }
-  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>管理者モード - 客注納期検索</title>
   <style>
-    body {
-      font-family: 'Noto Sans JP', sans-serif;
-      background: #f5f5f5;
-      padding: 2em;
-      color: #333;
-    }
-    .container {
-      background: white;
-      max-width: 600px;
-      margin: auto;
-      padding: 2em;
-      border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    }
-    h1 {
-      text-align: center;
-      color: #007b8f;
-    }
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 1.2em;
-    }
-    input[type="password"], input[type="file"] {
-      width: 100%;
-      padding: 0.8em;
-      margin-top: 0.5em;
-      font-size: 1em;
+    body { font-family: 'Noto Sans JP', sans-serif; background: #f5f5f5; padding: 2em; color: #333; }
+    .container { background: white; max-width: 600px; margin: auto; padding: 2em; border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #007b8f; }
+    label { font-weight: bold; display: block; margin-top: 1.2em; }
+    input[type="password"], input[type="file"], input[type="text"] {
+      width: 100%; padding: 0.8em; margin-top: 0.5em; font-size: 1em;
     }
     button {
-      margin-top: 1em;
-      width: 100%;
-      padding: 0.8em;
-      background-color: #007b8f;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
+      margin-top: 1em; width: 100%; padding: 0.8em; background-color: #007b8f;
+      color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
     }
-    .hidden {
-      display: none;
-    }
-    .actions {
-      margin-top: 2em;
-    }
-    .note {
-      font-size: 0.9em;
-      color: #666;
-    }
+    .hidden { display: none; }
+    .actions { margin-top: 2em; }
+    .note { font-size: 0.9em; color: #666; }
   </style>
 </head>
 <body>
@@ -75,29 +31,17 @@
     </div>
 
     <div id="adminPanel" class="hidden">
+      <label>GitHubアクセストークン</label>
+      <input type="password" id="githubToken" placeholder="ここにトークンを入力" />
+
       <div class="actions">
-        <label>商品マスタCSV</label>
+        <label>商品マスタCSV（product.csv）</label>
         <input type="file" id="productCSV" accept=".csv" />
-        <button onclick="uploadCSV('productCSV')">アップロード</button>
-        <button onclick="removeCSV('productCSV')">削除</button>
+        <button onclick="uploadToGitHub('productCSV', 'data/product.csv')">GitHubにアップロード</button>
 
-        <label>区分表CSV</label>
+        <label>区分表CSV（kubun.csv）</label>
         <input type="file" id="kubunCSV" accept=".csv" />
-        <button onclick="uploadCSV('kubunCSV')">アップロード</button>
-        <button onclick="removeCSV('kubunCSV')">削除</button>
-
-        <label>背景画像アップロード</label>
-        <input type="file" id="bgImage" accept="image/*" />
-        <button onclick="uploadBG()">アップロード</button>
-        <button onclick="removeBG()">削除</button>
-
-        <label>パスワード変更</label>
-        <input type="password" id="newPass" placeholder="新しいパスワード" />
-        <button onclick="changePassword()">変更</button>
-
-        <div style="margin-top: 2em;">
-          <button onclick="location.href='search.html'">店舗モードに切り替え</button>
-        </div>
+        <button onclick="uploadToGitHub('kubunCSV', 'data/kubun.csv')">GitHubにアップロード</button>
       </div>
     </div>
   </div>
@@ -111,48 +55,62 @@
         document.getElementById("login").classList.add("hidden");
         document.getElementById("adminPanel").classList.remove("hidden");
       } else {
-        alert("パスワードが間違っています");
+        alert("パスワードが違います");
       }
     }
 
-    function uploadCSV(type) {
-      const fileInput = document.getElementById(type);
+    async function uploadToGitHub(inputId, path) {
+      const token = document.getElementById("githubToken").value.trim();
+      if (!token) {
+        alert("トークンを入力してください");
+        return;
+      }
+      const fileInput = document.getElementById(inputId);
       const file = fileInput.files[0];
-      if (!file) return alert("ファイルを選択してください");
-      const reader = new FileReader();
-      reader.onload = () => {
-        localStorage.setItem(type, reader.result);
-        alert("アップロードしました");
-      };
-      reader.readAsText(file);
-    }
+      if (!file) {
+        alert("ファイルを選択してください");
+        return;
+      }
 
-    function removeCSV(type) {
-      localStorage.removeItem(type);
-      alert("削除しました");
-    }
+      const content = await file.text();
+      const base64Content = btoa(unescape(encodeURIComponent(content)));
 
-    function uploadBG() {
-      const file = document.getElementById("bgImage").files[0];
-      if (!file) return alert("画像を選択してください");
-      const reader = new FileReader();
-      reader.onload = () => {
-        localStorage.setItem("bgImage", reader.result);
-        alert("背景画像を保存しました");
-      };
-      reader.readAsDataURL(file);
-    }
+      const repo = "kyakuchu-nouki-app";
+      const owner = "t-ha0128";
+      const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
 
-    function removeBG() {
-      localStorage.removeItem("bgImage");
-      alert("背景画像を削除しました");
-    }
+      // 既存ファイルのSHAを取得
+      let sha = "";
+      try {
+        const res = await fetch(apiUrl, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          sha = data.sha;
+        }
+      } catch (e) {}
 
-    function changePassword() {
-      const newPass = document.getElementById("newPass").value;
-      if (!newPass) return alert("新しいパスワードを入力してください");
-      localStorage.setItem("adminPass", newPass);
-      alert("パスワードを変更しました");
+      const response = await fetch(apiUrl, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: "CSV update from admin page",
+          content: base64Content,
+          sha: sha || undefined,
+          branch: "main"
+        })
+      });
+
+      if (response.ok) {
+        alert("GitHubにアップロードしました！");
+      } else {
+        const error = await response.json();
+        alert("アップロード失敗：" + (error.message || "エラー"));
+      }
     }
   </script>
 </body>
