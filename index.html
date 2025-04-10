@@ -158,12 +158,16 @@
 
       let html = `
         <div class="highlight-nouki">納期：<span style='color: var(--main-color);'>${納期表示}</span></div>
-        <table style="width:100%; border-spacing: 0 6px;"><tr><td class="label">品番名：</td><td class="value">${item.品番名}</td></tr>
-        <tr><td class="label">仕入先名：</td><td class="value">${item.仕入先名}</td></tr>
-        <tr><td class="label">品種名：</td><td class="value">${item.品種名}</td></tr>
-        <tr><td class="label">メーカー商品コード：</td><td class="value">${item.メーカー商品コード}</td></tr>
-        <tr><td class="label">上代本体単価：</td><td class="value">${item.上代本体単価}</td></tr>
-        <tr><td class="label">P/S区分名：</td><td class="value">${item.PS区分名}</td></tr></table>`;
+    <table style="width:100%; border-spacing: 0 6px;">
+    
+<tr><td class="label">品番名：</td><td class="value"> ${item.品番名}</td></tr>
+<tr><td class="label">仕入先名：</td><td class="value"> ${item.仕入先名}</td></tr>
+<tr><td class="label">品種名：</td><td class="value"> ${item.品種名}</td></tr>
+<tr><td class="label">メーカー商品コード：</td><td class="value"> ${item.メーカー商品コード}</td></tr>
+<tr><td class="label">上代本体単価：</td><td class="value"> ${item.上代本体単価}</td></tr>
+<tr><td class="label">P/S区分名：</td><td class="value"> ${item.PS区分名}</td></tr>
+
+    </table>`;
 
       if (item.備考) {
         html += `<div class="highlight-remarks">📝 備考：${item.備考}</div>`;
