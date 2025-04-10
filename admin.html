@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -33,6 +34,8 @@
     <div id="adminPanel" class="hidden">
       <label>GitHubアクセストークン</label>
       <input type="password" id="githubToken" placeholder="ここにトークンを入力" />
+      <button onclick="saveToken()">トークンを保存</button>
+      <button onclick="clearToken()">保存済みトークンを削除</button>
 
       <div class="actions">
         <label>商品マスタCSV（product.csv）</label>
@@ -54,9 +57,29 @@
       if (input === savedPass) {
         document.getElementById("login").classList.add("hidden");
         document.getElementById("adminPanel").classList.remove("hidden");
+        loadToken();
       } else {
         alert("パスワードが違います");
       }
+    }
+
+    function saveToken() {
+      const token = document.getElementById("githubToken").value;
+      localStorage.setItem("githubToken", token);
+      alert("トークンを保存しました");
+    }
+
+    function loadToken() {
+      const token = localStorage.getItem("githubToken");
+      if (token) {
+        document.getElementById("githubToken").value = token;
+      }
+    }
+
+    function clearToken() {
+      localStorage.removeItem("githubToken");
+      document.getElementById("githubToken").value = "";
+      alert("トークンを削除しました");
     }
 
     async function uploadToGitHub(inputId, path) {
