@@ -46,8 +46,19 @@
         <input type="file" id="kubunCSV" accept=".csv" />
         <button onclick="uploadToGitHub('kubunCSV', 'data/kubun.csv')">GitHubにアップロード</button>
       </div>
+    
+      <div class="actions">
+        <label>背景画像をアップロード</label>
+        <input type="file" id="bgImage" accept="image/*" />
+        <button onclick="uploadBackground()">背景を設定</button>
+
+        <label>パスワードを変更</label>
+        <input type="password" id="newPass" placeholder="新しいパスワードを入力" />
+        <button onclick="changePassword()">パスワードを変更</button>
+      </div>
     </div>
   </div>
+
 
   <script>
     const savedPass = localStorage.getItem("adminPass") || "admin";
@@ -135,6 +146,28 @@
         alert("アップロード失敗：" + (error.message || "エラー"));
       }
     }
+  
+    function uploadBackground() {
+      const file = document.getElementById("bgImage").files[0];
+      if (!file) return alert("画像を選んでください");
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        localStorage.setItem("bgImage", e.target.result);
+        alert("背景を設定しました。再読み込みで反映されます。");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function changePassword() {
+      const newPass = document.getElementById("newPass").value.trim();
+      if (newPass.length < 3) {
+        alert("3文字以上のパスワードを入力してください");
+        return;
+      }
+      localStorage.setItem("adminPass", newPass);
+      alert("パスワードを変更しました");
+    }
   </script>
+
 </body>
 </html>
