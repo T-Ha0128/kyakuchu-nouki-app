@@ -1,0 +1,196 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <link rel="manifest" href="manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>客注納期検索</title>
+  <style>
+    body {
+      font-family: 'Roboto', 'Noto Sans JP', sans-serif;
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-position: center;
+      padding: 2em;
+      color: #333;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 2.5em 2em;
+      max-width: 700px;
+      margin: auto;
+      border-radius: 20px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+    }
+    h1 {
+      text-align: center;
+      font-size: 2em;
+      margin-bottom: 1.5em;
+      color: #007b8f;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1.5em;
+      font-size: 1.1em;
+    }
+    input[type="text"], input[type="date"] {
+      width: 100%;
+      padding: 0.9em;
+      font-size: 1.2em;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      margin-top: 1.5em;
+      padding: 0.9em;
+      font-size: 1.2em;
+      background-color: #81d8d0;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #65c2b7;
+    }
+    .result {
+      margin-top: 2.5em;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 1.5em;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    }
+    .result div {
+      margin: 0.6em 0;
+      font-size: 1.15em;
+    }
+    .highlight-remarks {
+      margin-top: 1em;
+      padding: 1em;
+      background: #fffbe6;
+      border-left: 5px solid #f0ad4e;
+      font-weight: bold;
+      color: #c56d00;
+    }
+    .fade-in {
+      animation: fadeIn 0.6s ease forwards;
+      opacity: 0;
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>客注納期検索</h1>
+    <label>📅 注文日</label>
+    <input type="date" id="注文日">
+    <label>🔍 品番を入力</label>
+    <input type="text" id="search品番" placeholder="例：11830L111100000">
+    <button onclick="検索()">検索する</button>
+    <div id="result" class="result" style="display: none;"></div>
+  </div>
+
+  <script>
+    let 商品データ = {};
+    let 区分データ = {};
+
+    document.getElementById("注文日").valueAsDate = new Date();
+
+    const bg = localStorage.getItem("bgImage");
+    if (bg) document.body.style.backgroundImage = `url('${bg}')`;
+
+    const productCSV = localStorage.getItem("productCSV");
+    if (productCSV) {
+      const lines = productCSV.split("\n");
+      lines.forEach((line, i) => {
+        if (i === 0) return;
+        const cols = line.split(",");
+        const 品番 = cols[0]?.trim();
+        if (品番) {
+          商品データ[品番] = {
+            品番: 品番,
+            品名: cols[1]?.trim(),
+            仕入先名: cols[2]?.trim(),
+            品種名: cols[4]?.trim(),
+            メーカー商品コード: cols[5]?.trim(),
+            上代本体単価: cols[6]?.trim(),
+            PS区分名: cols[7]?.trim(),
+            備考: cols[9]?.trim(),
+            区分: cols[8]?.trim()
+          };
+        }
+      });
+    }
+
+    const kubunCSV = localStorage.getItem("kubunCSV");
+    if (kubunCSV) {
+      const lines = kubunCSV.split("\n");
+      lines.forEach((line, i) => {
+        if (i === 0) return;
+        const [区分, 週数] = line.split(",");
+        if (区分) 区分データ[区分.trim()] = parseInt(週数);
+      });
+    }
+
+    function 検索() {
+      const 品番 = document.getElementById("search品番").value.trim();
+      const 注文日 = new Date(document.getElementById("注文日").value);
+      const resultBox = document.getElementById("result");
+      resultBox.innerHTML = "";
+
+      const item = 商品データ[品番];
+
+      if (!item) {
+        resultBox.innerHTML = `<div style='color:red;font-weight:bold;'>該当する品番が見つかりません。</div>`;
+        resultBox.style.display = "block";
+        return;
+      }
+
+      const 区分 = item.区分;
+      const 週数 = 区分データ[区分] || 0;
+      const 納期 = new Date(注文日);
+      納期.setDate(納期.getDate() + (週数 * 7));
+      const 曜日 = 納期.getDay();
+      const 土曜差 = (6 - 曜日 + 7) % 7;
+      納期.setDate(納期.getDate() + 土曜差);
+      const 納期表示 = `${納期.getFullYear()}/${納期.getMonth() + 1}/${納期.getDate()}（土）`;
+
+      let html = `
+        <div style="background:#f0f9ff; padding: 1em; border-left: 5px solid #81d8d0; font-weight: bold; font-size: 1.2em;">納期：<span style='color:#007b8f;'>${納期表示}</span></div>
+        <div><strong>品名：</strong>${item.品名}</div>
+        <div><strong>仕入先名：</strong>${item.仕入先名}</div>
+        <div><strong>品種名：</strong>${item.品種名}</div>
+        <div><strong>メーカー商品コード：</strong>${item.メーカー商品コード}</div>
+        <div><strong>上代本体単価：</strong>${item.上代本体単価}</div>
+        <div><strong>P/S区分名：</strong>${item.PS区分名}</div>`;
+
+      if (item.備考) {
+        html += `<div class="highlight-remarks">📝 備考：${item.備考}</div>`;
+      }
+
+      resultBox.innerHTML = html;
+      resultBox.classList.remove("fade-in");
+      void resultBox.offsetWidth;
+      resultBox.classList.add("fade-in");
+      resultBox.style.display = "block";
+    }
+  </script>
+</body>
+</html>
