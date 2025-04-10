@@ -46,12 +46,12 @@
       font-size: 1.1em;
       line-height: 1.6em;
     }
-    .result-row {
+    .result-row { display: none; }
       display: flex;
       margin-bottom: 0.6em;
     }
     .label {
-      width: 180px;
+      width: 160px;
       font-weight: bold;
       white-space: nowrap;
     }
@@ -158,12 +158,12 @@
 
       let html = `
         <div class="highlight-nouki">納期：<span style='color: var(--main-color);'>${納期表示}</span></div>
-        <div class="result-row"><div class="label">品番名：</div><div class="value">${item.品番名}</div></div>
-        <div class="result-row"><div class="label">仕入先名：</div><div class="value">${item.仕入先名}</div></div>
-        <div class="result-row"><div class="label">品種名：</div><div class="value">${item.品種名}</div></div>
-        <div class="result-row"><div class="label">メーカー商品コード：</div><div class="value">${item.メーカー商品コード}</div></div>
-        <div class="result-row"><div class="label">上代本体単価：</div><div class="value">${item.上代本体単価}</div></div>
-        <div class="result-row"><div class="label">P/S区分名：</div><div class="value">${item.PS区分名}</div></div>`;
+        <table style="width:100%; border-spacing: 0 6px;"><tr><td class="label">品番名：</td><td class="value">${item.品番名}</td></tr>
+        <tr><td class="label">仕入先名：</td><td class="value">${item.仕入先名}</td></tr>
+        <tr><td class="label">品種名：</td><td class="value">${item.品種名}</td></tr>
+        <tr><td class="label">メーカー商品コード：</td><td class="value">${item.メーカー商品コード}</td></tr>
+        <tr><td class="label">上代本体単価：</td><td class="value">${item.上代本体単価}</td></tr>
+        <tr><td class="label">P/S区分名：</td><td class="value">${item.PS区分名}</td></tr></table>`;
 
       if (item.備考) {
         html += `<div class="highlight-remarks">📝 備考：${item.備考}</div>`;
